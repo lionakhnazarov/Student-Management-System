@@ -10,7 +10,7 @@ services:
       - pgadmin
       - db
     environment:
-      - DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432/school_mgmt
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/school_mgmt
     volumes:
       - ./backend/src:/app/src
     # restart: always
