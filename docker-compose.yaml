@@ -1,0 +1,61 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5007:5007"
+    depends_on:
+      - pgadmin
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432/school_mgmt
+    volumes:
+      - ./backend/src:/app/src
+    # restart: always
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
+  db:
+    container_name: postgres
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./seed_db/tables.sql:/docker-entrypoint-initdb.d/seed-01.sql
+      - ./seed_db/seed-db.sql:/docker-entrypoint-initdb.d/seed-02.sql
+
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=school_mgmt
+    ports:
+      - "5432:5432"
+    # restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    # volumes:
+    #   - ./frontend:/app
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+      - pgadmin
+      - db
+    # restart: always
+    environment:
+      - VITE_API_URL=http://localhost:5007
+volumes:
+  postgres_data:
+  pgadmin_data:
